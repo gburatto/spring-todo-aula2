@@ -1,7 +1,5 @@
 package com.utfpr.todo.users;
 
-import java.util.Collections;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,33 +8,21 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import at.favre.lib.crypto.bcrypt.BCrypt;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/users")
 public class UserController {
 
   @Autowired
-  private UserRepository userRepository;
+  private UserService userService;
 
   @PostMapping
-  public ResponseEntity<?> create(@RequestBody UserModel user) {
+  public ResponseEntity<?> create(@RequestBody @Valid UserModel user) {
 
-    UserModel userModel = userRepository.findByUsername(user.getUsername());
+    UserModel createdUser = userService.create(user);
 
-    if (userModel != null) {
-      // throw new RuntimeException("Username already exists");
-      return ResponseEntity.status(HttpStatus.CONFLICT).body(
-          Collections.singletonMap("error", "Username already exists"));
-    }
-
-    String hashedPassword = BCrypt.withDefaults().hashToString(12, user.getPassword().toCharArray());
-
-    user.setPassword(hashedPassword);
-
-    UserModel newUser = userRepository.save(user);
-
-    return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
+    return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
 
   }
 
